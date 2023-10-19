@@ -2,6 +2,7 @@ use bracket_lib::prelude::*;
 
 mod game_state;
 mod game_player;
+mod game_obstacle;
 
 fn main() -> BError {
     let context = BTermBuilder::simple80x50()

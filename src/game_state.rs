@@ -1,4 +1,5 @@
 use bracket_lib::prelude::*;
+use crate::game_obstacle::Obstacle;
 use crate::game_player::*;
 
 pub const SCREEN_WIDTH: i32 = 80;
@@ -15,6 +16,8 @@ pub struct State {
     player: Player,
     frame_time: f32,
     mode: GameMode,
+    obstacle: Obstacle,
+    score: i32,
 }
 
 impl State {
@@ -23,6 +26,8 @@ impl State {
             player: Player::new(5, 25),
             frame_time: 0.0,
             mode: GameMode::Menu,
+            obstacle: Obstacle::new(SCREEN_WIDTH, 0),
+            score: 0,
         }
     }
 
@@ -41,6 +46,18 @@ impl State {
 
         self.player.render(ctx);
         ctx.print(0, 0, "Press Space to Flap");
+        ctx.print(0, 1, &format!("Score {}", self.score));
+
+        self.obstacle.render(ctx, self.player.x);
+        if self.player.x > self.obstacle.x {
+            self.score += 1;
+            self.obstacle = Obstacle::new(self.player.x + SCREEN_WIDTH, self.score);
+        }
+
+        if self.player.y > SCREEN_HEIGHT || self.obstacle.hit_obstacle(&self.player) {
+            self.mode = GameMode::End;
+        }
+
         if self.player.y > SCREEN_HEIGHT {
             self.mode = GameMode::End;
         }
@@ -50,6 +67,8 @@ impl State {
         self.player = Player::new(5, 25);
         self.frame_time = 0.0;
         self.mode = GameMode::Playing;
+        self.obstacle = Obstacle::new(SCREEN_WIDTH, 0);
+        self.score = 0;
     }
 
     pub fn main_menu(&mut self, ctx: &mut BTerm) {
@@ -70,6 +89,7 @@ impl State {
     pub fn dead(&mut self, ctx: &mut BTerm) {
         ctx.cls();
         ctx.print_centered(5, "You're Dead!");
+        ctx.print_centered(6, &format!("You earned {} points", self.score));
         ctx.print_centered(8, "(P) Play Again");
         ctx.print_centered(9, "(Q) Quit Game");
 
